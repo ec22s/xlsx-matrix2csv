@@ -1,0 +1,32 @@
+{
+  "csv": {
+    "basePath": "./output/output",
+    "addTimestamp": false,
+    "overWrite": true,
+    "delimCol": ",",
+    "delimRow": "\n",
+    "extraData": [
+      [
+        "extra-1"
+      ],
+      [
+        "extra-2"
+      ],
+      [
+        "extra-3"
+      ],
+      [
+        "extra-4"
+      ],
+      [
+        "extra-5"
+      ]
+    ]
+  },
+  "xlsx": {
+    "file": "./test.xlsx",
+    "sheetIndex": 0,
+    "rowRange": [2, 17],
+    "colRange": [2, 7]
+  }
+}
