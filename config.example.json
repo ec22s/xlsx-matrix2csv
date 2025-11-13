@@ -1,32 +1,29 @@
 {
   "csv": {
     "basePath": "./output/output",
-    "addTimestamp": false,
     "overWrite": true,
+    "timestamp": false,
     "delimCol": ",",
     "delimRow": "\n",
     "extraData": [
       [
-        "extra-1"
+        "Add-1-1", "Add-1-2"
       ],
       [
-        "extra-2"
-      ],
-      [
-        "extra-3"
-      ],
-      [
-        "extra-4"
-      ],
-      [
-        "extra-5"
+        "Add-2-1", "Add-2-2"
       ]
     ]
   },
+  "json": {
+    "output": true,
+    "basePath": "./output/output",
+    "indent": 2,
+    "overWrite": true,
+    "timestamp": false
+  },
   "xlsx": {
-    "file": "./test.xlsx",
+    "file": "./Book1.xlsx",
     "sheetIndex": 0,
-    "rowRange": [2, 17],
-    "colRange": [2, 7]
+    "range": ["B2", "E6"]
   }
 }

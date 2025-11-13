@@ -1,44 +1,48 @@
 'use strict';
-import { read } from "xlsx";
+import { read, utils } from "xlsx";
 import { readFile, writeFile } from 'fs/promises';
 
 const config = {};
 
 // main
 loadConfig().then(() =>
-  buildCsvArray2D().then((csv) =>
+  buildCsvArray2D().then((csv) => {
     writeCsvFile(csv)
-  )
+  })
 );
 
 async function buildCsvArray2D() {
-  const { file, sheetIndex, rowRange, colRange } = config.xlsx;
+  const { file, sheetIndex, range } = config.xlsx;
   try {
     const { SheetNames, Sheets } = read(await readFile(file), {
       // cellDates: true,
       // codepage: 932,
       dense: true,
     });
-    const data = Sheets[SheetNames[sheetIndex]]
-      .filter(($) => Array.isArray($))
-      .filter((_, i) => (i + 1) >= rowRange[0] && i < rowRange[1])
-      .map((row) => row
-        .filter((_, j) => (j + 1) >= colRange[0] && j < colRange[1])
-        .map((col) => col.v)
-      );
-    console.log('[WIP]', data, config.xlsx);
+    const originalArray = utils.sheet_to_json(
+      Sheets[SheetNames[sheetIndex]],
+      { header: 1, range: range.join(":") }
+    );
+    const matrix = [];
+    for (const row of originalArray) {
+      const tmpRow = [];
+      if (Array.isArray(row)) {
+        for (const col of row) {
+          tmpRow.push(col != null ? col : "");
+        }
+      }
+      matrix.push(tmpRow);
+    }
+    return matrix[0].map((headerKey, col) => matrix.slice(1)
+      .map((bodyRow) => {
+        const val = bodyRow[col];
+        if (val != null && val !== "") return [headerKey, val]
+      })
+      .filter((elem) => elem != null)
+    ).flat();
   } catch (err) {
     console.error(`[ERROR] failed to load ${file}`, err);
   }
-
-  return [ // stub
-    [
-      1, 2, 3
-    ],
-    [
-      4, 5, 6
-    ]
-  ];
 }
 
 async function loadConfig() {
@@ -58,20 +62,30 @@ async function loadConfig() {
   }
 }
 
+function outputFilePath(basePath, timestamp, ext) {
+  return basePath
+    + (timestamp ? `-${(new Date).getTime()}` : '')
+    + `.${ext}`;
+}
+
 async function writeCsvFile(csvArray2D) {
+  const { csv: csvConfig, json: jsonConfig } = config;
   const {
-    addTimestamp, basePath, overWrite, delimCol, delimRow, extraData
-  } = config.csv;
-  const outputFile = basePath
-    + (addTimestamp ? `-${(new Date).getTime()}` : '')
-    + '.csv';
+    basePath, overWrite, timestamp, delimCol, delimRow, extraData
+  } = csvConfig;
+  const csvFile = outputFilePath(basePath, timestamp, 'csv');
   const data = csvArray2D.map((row) =>
     extraData.map((extraRow) => row.concat(extraRow))
-  )
-    .flat()
-    .map((row) =>
-      row.map((col) => `"${col}"`).join(delimCol)
-    ).join(delimRow);
-  console.log('[CHECK]', outputFile, `\n${data}`);
-  await writeFile(outputFile, data, { overwrite: overWrite });
+  ).flat();
+  if (jsonConfig.output) {
+    const { basePath, indent, overWrite, timestamp } = jsonConfig;
+    const jsonFile = outputFilePath(basePath, timestamp, 'json');
+    await writeFile(
+      jsonFile, JSON.stringify(data, null, indent), { overwrite: overWrite }
+    );
+  }
+  const csvString = data.map((row) =>
+    row.map((col) => `"${col}"`).join(delimCol)
+  ).join(delimRow);
+  await writeFile(csvFile, csvString, { overwrite: overWrite });
 }
