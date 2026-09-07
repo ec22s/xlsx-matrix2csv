@@ -93,6 +93,8 @@
 
   - 設定項目は下記のとおりです。具体例は `confing.example.json` を見て下さい。
 
+  - csv&thinsp;/&thinsp;json&thinsp;のパスに含まれるフォルダが存在しなければ作成します。(2026年9月追加)
+
     ```
     {
       "csv": {

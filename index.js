@@ -1,5 +1,7 @@
 'use strict';
+import path from 'path';
 import { read, utils } from "xlsx";
+import fs from 'fs/promises';
 import { readFile, writeFile } from 'fs/promises';
 
 const config = {};
@@ -62,7 +64,8 @@ async function loadConfig() {
   }
 }
 
-function outputFilePath(basePath, timestamp, ext) {
+async function outputFilePath(basePath, timestamp, ext) {
+  await fs.mkdir(path.dirname(basePath), { recursive: true });
   return basePath
     + (timestamp ? `-${(new Date).getTime()}` : '')
     + `.${ext}`;
@@ -73,13 +76,13 @@ async function writeCsvFile(csvArray2D) {
   const {
     basePath, overWrite, timestamp, delimCol, delimRow, extraData
   } = csvConfig;
-  const csvFile = outputFilePath(basePath, timestamp, 'csv');
+  const csvFile = await outputFilePath(basePath, timestamp, 'csv');
   const data = csvArray2D.map((row) =>
     extraData.map((extraRow) => row.concat(extraRow))
   ).flat();
   if (jsonConfig.output) {
     const { basePath, indent, overWrite, timestamp } = jsonConfig;
-    const jsonFile = outputFilePath(basePath, timestamp, 'json');
+    const jsonFile = await outputFilePath(basePath, timestamp, 'json');
     await writeFile(
       jsonFile, JSON.stringify(data, null, indent), { overwrite: overWrite }
     );
